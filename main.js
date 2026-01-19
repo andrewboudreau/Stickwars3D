@@ -243,9 +243,9 @@ class StickwarsGame {
             Math.cos(this.camera.rotation.y)
         );
         const right = new BABYLON.Vector3(
-            Math.sin(this.camera.rotation.y + Math.PI / 2),
+            Math.sin(this.camera.rotation.y - Math.PI / 2),
             0,
-            Math.cos(this.camera.rotation.y + Math.PI / 2)
+            Math.cos(this.camera.rotation.y - Math.PI / 2)
         );
 
         let movement = BABYLON.Vector3.Zero();
@@ -253,8 +253,8 @@ class StickwarsGame {
         // WASD movement (matching original controls)
         if (this.keys['w']) movement.addInPlace(forward.scale(speed));
         if (this.keys['s']) movement.addInPlace(forward.scale(-speed));
-        if (this.keys['a']) movement.addInPlace(right.scale(speed));
-        if (this.keys['d']) movement.addInPlace(right.scale(-speed));
+        if (this.keys['a']) movement.addInPlace(right.scale(-speed));
+        if (this.keys['d']) movement.addInPlace(right.scale(speed));
 
         // Apply movement
         this.camera.position.addInPlace(movement);
