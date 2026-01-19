@@ -484,6 +484,13 @@ class StickwarsGame {
         // Input state
         this.keys = {};
 
+        // Mobile touch state
+        this.joystickInput = { x: 0, y: 0 };
+        this.joystickTouchId = null;
+        this.lookTouchId = null;
+        this.lastLookTouch = { x: 0, y: 0 };
+        this.isMobile = 'ontouchstart' in window;
+
         // Robots
         this.robots = [];
         this.meshManager = null;
@@ -693,6 +700,7 @@ class StickwarsGame {
     }
 
     setupInput() {
+        // Keyboard input
         window.addEventListener('keydown', (e) => {
             this.keys[e.key.toLowerCase()] = true;
             if (e.key === 'Shift') this.isRunning = true;
@@ -703,8 +711,11 @@ class StickwarsGame {
             if (e.key === 'Shift') this.isRunning = false;
         });
 
+        // Mouse input (desktop)
         this.canvas.addEventListener('click', () => {
-            this.canvas.requestPointerLock();
+            if (!this.isMobile) {
+                this.canvas.requestPointerLock();
+            }
         });
 
         document.addEventListener('mousemove', (e) => {
@@ -716,6 +727,128 @@ class StickwarsGame {
         });
 
         window.addEventListener('resize', () => this.engine.resize());
+
+        // Mobile touch controls
+        this.setupMobileControls();
+    }
+
+    setupMobileControls() {
+        const joystickZone = document.getElementById('joystick-zone');
+        const joystickThumb = document.getElementById('joystick-thumb');
+        const runButton = document.getElementById('run-button');
+
+        if (!joystickZone || !runButton) return;
+
+        const joystickRadius = 60; // Half of joystick base size
+        const thumbRadius = 25;    // Half of thumb size
+        const maxDistance = joystickRadius - thumbRadius;
+
+        // Joystick touch handling
+        joystickZone.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.changedTouches[0];
+            this.joystickTouchId = touch.identifier;
+            this.updateJoystick(touch, joystickZone, joystickThumb, maxDistance);
+        }, { passive: false });
+
+        joystickZone.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            for (const touch of e.changedTouches) {
+                if (touch.identifier === this.joystickTouchId) {
+                    this.updateJoystick(touch, joystickZone, joystickThumb, maxDistance);
+                }
+            }
+        }, { passive: false });
+
+        joystickZone.addEventListener('touchend', (e) => {
+            for (const touch of e.changedTouches) {
+                if (touch.identifier === this.joystickTouchId) {
+                    this.joystickTouchId = null;
+                    this.joystickInput = { x: 0, y: 0 };
+                    joystickThumb.style.left = '35px';
+                    joystickThumb.style.top = '35px';
+                }
+            }
+        });
+
+        // Run button
+        runButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.isRunning = true;
+            runButton.classList.add('active');
+        }, { passive: false });
+
+        runButton.addEventListener('touchend', (e) => {
+            this.isRunning = false;
+            runButton.classList.remove('active');
+        });
+
+        // Touch look (on canvas, excluding control areas)
+        this.canvas.addEventListener('touchstart', (e) => {
+            for (const touch of e.changedTouches) {
+                // Only use touches on the right side for looking
+                if (touch.clientX > window.innerWidth * 0.3 && this.lookTouchId === null) {
+                    this.lookTouchId = touch.identifier;
+                    this.lastLookTouch = { x: touch.clientX, y: touch.clientY };
+                }
+            }
+        }, { passive: true });
+
+        this.canvas.addEventListener('touchmove', (e) => {
+            for (const touch of e.changedTouches) {
+                if (touch.identifier === this.lookTouchId) {
+                    const deltaX = touch.clientX - this.lastLookTouch.x;
+                    const deltaY = touch.clientY - this.lastLookTouch.y;
+
+                    this.camera.rotation.y += deltaX * 0.005;
+                    this.camera.rotation.x += deltaY * 0.005;
+                    this.camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.camera.rotation.x));
+
+                    this.lastLookTouch = { x: touch.clientX, y: touch.clientY };
+                }
+            }
+        }, { passive: true });
+
+        this.canvas.addEventListener('touchend', (e) => {
+            for (const touch of e.changedTouches) {
+                if (touch.identifier === this.lookTouchId) {
+                    this.lookTouchId = null;
+                }
+            }
+        });
+
+        // Prevent default touch behaviors
+        document.addEventListener('touchmove', (e) => {
+            if (e.target === this.canvas) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    }
+
+    updateJoystick(touch, zone, thumb, maxDistance) {
+        const rect = zone.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        let deltaX = touch.clientX - centerX;
+        let deltaY = touch.clientY - centerY;
+
+        // Clamp to max distance
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        if (distance > maxDistance) {
+            deltaX = (deltaX / distance) * maxDistance;
+            deltaY = (deltaY / distance) * maxDistance;
+        }
+
+        // Update thumb position
+        thumb.style.left = (35 + deltaX) + 'px';
+        thumb.style.top = (35 + deltaY) + 'px';
+
+        // Normalize to -1 to 1
+        this.joystickInput = {
+            x: deltaX / maxDistance,
+            y: -deltaY / maxDistance  // Invert Y so up is positive
+        };
     }
 
     updateMovement() {
@@ -733,10 +866,20 @@ class StickwarsGame {
         );
 
         let movement = BABYLON.Vector3.Zero();
+
+        // Keyboard input
         if (this.keys['w']) movement.addInPlace(forward.scale(speed));
         if (this.keys['s']) movement.addInPlace(forward.scale(-speed));
         if (this.keys['a']) movement.addInPlace(right.scale(-speed));
         if (this.keys['d']) movement.addInPlace(right.scale(speed));
+
+        // Joystick input (mobile)
+        if (this.joystickInput.y !== 0) {
+            movement.addInPlace(forward.scale(this.joystickInput.y * speed));
+        }
+        if (this.joystickInput.x !== 0) {
+            movement.addInPlace(right.scale(this.joystickInput.x * speed));
+        }
 
         this.camera.position.addInPlace(movement);
 
