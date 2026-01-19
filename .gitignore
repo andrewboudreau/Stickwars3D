@@ -1,0 +1,28 @@
+# Build outputs
+*.exe
+*.o
+*.pdb
+*.ilk
+*.lib
+*.dll
+
+# Visual Studio
+.vs/
+*.vcxproj.user
+*.suo
+*.ncb
+*.opt
+*.plg
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log

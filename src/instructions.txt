@@ -1,0 +1,51 @@
+Stickwars 3-D
+
+Jordan Pezen
+jpezen@uiuc.edu
+
+NOT FOR PUBLIC USE
+All resources were obtained without permission (inclusive)or moral qualms
+
+
+
+
+Instructions
+
+Action		Key/process				Result
+------          -----------				------
+Walk Forward	    'w'
+Walk Backward	    's'
+Strafe Left	    'd'
+Strafe Right	    'a'
+
+Fly Up/Down	Unlock Height (in options menu)
+
+Run		Hold Left Shift
+
+Rotate view	Hold Left Mouse Button and Move Cursor
+
+Zoom In		    'i'
+Zoom Out	    'm'
+
+Shoot Weapon
+Swing Arm	 Space Bar
+Swing Weapon
+
+Left Hand	    'z'
+Right Hand	    'x'
+
+
+
+Weapons:(Requires Hand to be Out -> L=Left R=Right B=Both)
+Flashlight	R   'f'
+Hammer		R   '1'
+Knife		R   '2'
+Bat		R   '3'
+Pistol		R   '4'
+Uzi		R   '5'
+Uzi		L   '6'
+Rifle		B   '7'
+Sniper Rifle	B   '8'
+Scope 		B   'r'	(Sniper Rifle Out)
+Bazooka		R   '9'
+
