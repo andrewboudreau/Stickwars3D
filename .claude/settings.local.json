@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(git commit:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(ls -la \"C:\\\\Users\\\\andre\\\\source\\\\repos\\\\Stickwars3D\\\\src\"\" | grep -i \".cpp|.h \")",
+      "Bash(xxd:*)",
+      "Bash(for file in \"C:\\\\Users\\\\andre\\\\source\\\\repos\\\\Stickwars3D\\\\src\\\\robot\"\"*.obj; do echo -n \"$file: \"; grep -c \"^v \" \"$file \")",
+      "Bash(done)",
+      "Bash(git add:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
